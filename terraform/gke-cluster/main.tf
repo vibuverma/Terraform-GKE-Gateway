@@ -15,45 +15,31 @@ module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google"
   project_id                 = var.project_id
   name                       = var.gke_cluster.name
-  region                     = "us-central1"
-  zones                      = ["us-central1-a", "us-central1-b", "us-central1-f"]
-  network                    = "vpc-01"
-  subnetwork                 = "us-central1-01"
-  ip_range_pods              = "us-central1-01-gke-01-pods"
-  ip_range_services          = "us-central1-01-gke-01-services"
-  http_load_balancing        = false
-  network_policy             = false
-  horizontal_pod_autoscaling = true
-  filestore_csi_driver       = false
-
-  node_pools = [
-    {
-      name                      = "default-node-pool"
-      machine_type              = "e2-medium"
-      node_locations            = "us-central1-b,us-central1-c"
-      min_count                 = 1
-      max_count                 = 100
-      local_ssd_count           = 0
-      spot                      = false
-      disk_size_gb              = 100
-      disk_type                 = "pd-standard"
-      image_type                = "COS_CONTAINERD"
-      enable_gcfs               = false
-      enable_gvnic              = false
-      auto_repair               = true
-      auto_upgrade              = true
-      service_account           = "project-service-account@<PROJECT ID>.iam.gserviceaccount.com"
-      preemptible               = false
-      initial_node_count        = 80
-    },
-  ]
+  region                     = var.gke_cluster.region
+  zones                      = var.gke_cluster.zones
+  network                    = var.gke_cluster.vpc.vpc_name
+  subnetwork                 = var.gke_cluster.vpc.vpc_subnet
+  ip_range_pods              = var.gke_cluster.vpc.vpc_sec_pod
+  ip_range_services          = var.gke_cluster.vpc.vpc_sec_svc
+  http_load_balancing        = var.gke_cluster.http_load_balancing
+  network_policy             = var.gke_cluster.network_policy
+  horizontal_pod_autoscaling = var.gke_cluster.horizontal_pod_autoscaling
+  filestore_csi_driver       = var.gke_cluster.filestore_csi_driver
+  cluster_ipv4_cidr          = var.gke_cluster.cluster_ipv4_cidr
+  remove_default_node_pool   = true
+  create_service_account     = false
+  master_authorized_networks = var.gke_cluster.master_authorized_networks
+  node_pools                 = var.gke_cluster.node_pools
+  node_pools_labels          = var.gke_cluster.node_pools_labels
+  cluster_resource_labels    = var.gke_cluster.cluster_resource_labels
+  depends_on                 = [google_compute_subnetwork_iam_member.member]
+}
 
 
-  node_pools_labels = {
-    all = {}
-
-    default-node-pool = {
-      default-node-pool = true
-    }
-  }
+resource "google_compute_subnetwork_iam_member" "member" {
+  project    = var.project_id
+  region     = var.gke_cluster.region
+  subnetwork = var.gke_cluster.vpc.vpc_subnet
+  role       = "roles/compute.networkUser"
+  member     = format("serviceAccount:%s@cloudservices.gserviceaccount.com", data.google_project.service_project.number)
 }
