@@ -5,9 +5,9 @@ variable "project_id" {
 
 variable "gke_cluster" {
   type = object({
-    name   = string
-    region = string
-    zones  = list(string)
+    name              = string
+    region            = string
+    zones             = list(string)
     cluster_ipv4_cidr = string
     vpc = object({
       vpc_name    = string
@@ -23,6 +23,24 @@ variable "gke_cluster" {
       cidr_block   = string
       display_name = string
     }))
+
+    node_pools = list(object({
+      name               = string
+      machine_type       = string
+      node_locations     = list(string)
+      min_count          = number
+      max_count          = number
+      local_ssd_count    = number
+      spot               = bool
+      disk_size_gb       = number
+      disk_type          = string
+      image_type         = string
+      auto_repair        = bool
+      preemptible        = bool
+      initial_node_count = number
+    }))
+
+    cluster_resource_labels = map(string)
   })
 }
 
@@ -40,12 +58,8 @@ variable "gke_cluster" {
 #       disk_size_gb              = 100
 #       disk_type                 = "pd-standard"
 #       image_type                = "COS_CONTAINERD"
-#       enable_gcfs               = false
-#       enable_gvnic              = false
 #       auto_repair               = true
-#       auto_upgrade              = true
-#       service_account           = "project-service-account@<PROJECT ID>.iam.gserviceaccount.com"
 #       preemptible               = false
-#       initial_node_count        = 80
+#       initial_node_count = 1 
 #     },
 #   ]

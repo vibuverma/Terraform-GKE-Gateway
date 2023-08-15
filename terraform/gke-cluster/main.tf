@@ -29,10 +29,32 @@ module "gke" {
   remove_default_node_pool   = true
   create_service_account     = false
   master_authorized_networks = var.gke_cluster.master_authorized_networks
-  node_pools                 = var.gke_cluster.node_pools
-  node_pools_labels          = var.gke_cluster.node_pools_labels
   cluster_resource_labels    = var.gke_cluster.cluster_resource_labels
   depends_on                 = [google_compute_subnetwork_iam_member.member]
+  node_pools = [
+    {
+      name               = var.gke_cluster.node_pools[0].name
+      machine_type       = var.gke_cluster.node_pools[0].machine_type
+      node_locations     = var.gke_cluster.node_pools[0].node_locations
+      min_count          = var.gke_cluster.node_pools[0].min_count
+      max_count          = var.gke_cluster.node_pools[0].max_count
+      local_ssd_count    = var.gke_cluster.node_pools[0].local_ssd_count
+      spot               = var.gke_cluster.node_pools[0].spot
+      disk_size_gb       = var.gke_cluster.node_pools[0].disk_size_gb
+      disk_type          = var.gke_cluster.node_pools[0].disk_type
+      image_type         = var.gke_cluster.node_pools[0].image_type
+      auto_repair        = var.gke_cluster.node_pools[0].auto_repair
+      preemptible        = var.gke_cluster.node_pools[0].preemptible
+      initial_node_count = var.gke_cluster.node_pools[0].initial_node_count
+    },
+  ]
+
+  node_pools_labels = {
+    all = {}
+    linux-pool-01 = {
+      project = "personal",
+    }
+  }
 }
 
 
